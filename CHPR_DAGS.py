@@ -579,10 +579,10 @@ DAG_SPECS = [
         "schedule": "0 6-18 * * *",  # hourly at HH:00 between 06:00–18:00
         "start_date": datetime(2025, 8, 24, 6, 5, tzinfo=LOCAL_TZ),
         "jobs": [
-            {"task_id": "wave11_data_importer",  "script": "WAVE11_PROJECT/WAVE11_DATA_IMPORTATION.py"},
+            {"task_id": "collaborators_importation",  "script": "WAVE11_PROJECT/WAVE11_DATA_IMPORTATION.py"},
             {"task_id": "wave11_data_processor", "script": "WAVE11_PROJECT/WAVE11_DATA_PROCESSING.py"},
         ],
-        "edges": [("wave11_data_importer", "wave11_data_processor")],
+        "edges": [("collaborators_importation", "wave11_data_processor")],
         "tags": ["wave11", "pipeline"],
         "retries": 2,
         "retry_delay_minutes": 5,
@@ -906,6 +906,27 @@ DAG_SPECS = [
         # "trigger_on_change_immediately": True,
         # "file_change_poke_interval_seconds": 5,
     },
+
+# COLLABORATORS PROJECT
+
+    {
+        "dag_id": "COLLABORATORS_PROJECT_PIPELINE",
+        "schedule": "0 12 * * *",  # daily at 12:00
+        "start_date": datetime(2025, 8, 24, 6, 5, tzinfo=LOCAL_TZ),
+        "jobs": [
+            {"task_id": "collaborators_importation",  "script": "COLLABORATORS_PROJECT/COLLABORATORS_DATA_IMPORTATION.py"},
+            {"task_id": "collaborators_data_processor", "script": "COLLABORATORS_PROJECT/COLLABORATORS_DATA_PROCESSING.py"},
+        ],
+        "edges": [("collaborators_importation", "collaborators_data_processor")],
+        "tags": ["collaborators_information", "pipeline"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+
+
 
 
 ]
