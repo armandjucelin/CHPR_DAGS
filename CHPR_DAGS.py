@@ -579,10 +579,10 @@ DAG_SPECS = [
         "schedule": "0 6-18 * * *",  # hourly at HH:00 between 06:00–18:00
         "start_date": datetime(2025, 8, 24, 6, 5, tzinfo=LOCAL_TZ),
         "jobs": [
-            {"task_id": "collaborators_importation",  "script": "WAVE11_PROJECT/WAVE11_DATA_IMPORTATION.py"},
+            {"task_id": "wave11_importation",  "script": "WAVE11_PROJECT/WAVE11_DATA_IMPORTATION.py"},
             {"task_id": "wave11_data_processor", "script": "WAVE11_PROJECT/WAVE11_DATA_PROCESSING.py"},
         ],
-        "edges": [("collaborators_importation", "wave11_data_processor")],
+        "edges": [("wave11_importation", "wave11_data_processor")],
         "tags": ["wave11", "pipeline"],
         "retries": 2,
         "retry_delay_minutes": 5,
