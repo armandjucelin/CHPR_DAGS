@@ -26,10 +26,10 @@ from airflow.providers.standard.operators.python import ShortCircuitOperator
 from airflow.sdk.bases.sensor import BaseSensorOperator
 
 # ================================ CONFIG ====================================
-EMAILS = ["nghan@chprhealth.org", "ngha.mbuh@gmail.com"]
+EMAILS = ["nghan@chprhealth.org", "ngha.mbuh@gmail.com",'toukapf@chprhealth.org',"armandtoukap4@gmail.com"]
 LOCAL_TZ = pendulum.timezone("Africa/Douala")
 DEFAULT_ARTIFACTS_DIR = "/tmp/airflow_artifacts"
-DEFAULT_SCRIPTS_DIR = "/mnt/d/SCRIPTS_PATH/inspiretb"   # override with env/Variable 'script_path'
+DEFAULT_SCRIPTS_DIR = "/mnt/e/SCRIPTS_PATH/inspiretb"   # override with env/Variable 'script_path'
 
 # ================================ UTILS =====================================
 def _get_cfg_runtime(name: str, default: str | None = None) -> str:
@@ -925,6 +925,106 @@ DAG_SPECS = [
         "max_active_tasks": 4,
         "pool": "data_import_pool",
     },
+
+    # 1. Planner extraction (This one is likely correct)
+    {
+        "dag_id": "Planner_extraction_and_processing",
+        "schedule": "0 13 * * *",
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+        "jobs": [{"task_id": "Planner_extraction_and_processing", "script": "Planner/Planner_extraction and processed code.py"}],
+        "edges": [],
+        "tags": ["Planner_extraction_and_processing", "external-script"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+
+    # 2. WAVE11 PROGRESS
+    {
+        "dag_id": "WAVE11_OP_PROGRESS_TRACKING_NOTIFICATIONS",
+        "schedule": "0 9 * * *",
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+        # 🔴 ERROR WAS HERE: You must change the script filename below
+        "jobs": [{"task_id": "WAVE11_OP_PROGRESS_TRACKING_NOTIFICATIONS", "script": "Planner/WAVE11_OP_PROGRESS_TRACKING_NOTIFICATIONS_____A.py"}], 
+        "edges": [],
+        "tags": ["WAVE11_OP_PROGRESS_TRACKING_NOTIFICATIONS", "external-script"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+
+    # 3. Xpert File Notification
+    {
+        "dag_id": "unprocessed_Xpert_file_notification",
+        "schedule": "0 10 * * 5",
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+        # 🔴 ERROR WAS HERE: You must change the script filename below
+        "jobs": [{"task_id": "unprocessed_Xpert_file_notification", "script": "XPERT_PROJECT/unprocessed_Xpert_file_notification.py"}],
+        "edges": [],
+        "tags": ["unprocessed_Xpert_file_notification", "external-script"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+
+    # 4. Site Supervision
+    {
+        "dag_id": "site_supervision_action_items",
+        "schedule": "0 11 * * 2,5",
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+        # 🔴 ERROR WAS HERE: You must change the script filename below
+        "jobs": [{"task_id": "site_supervision_action_items", "script": "WAVE11_PROJECT/site_supervision_action_items.py"}],
+        "edges": [],
+        "tags": ["site_supervision_action_items", "external-script"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+
+    # 5. QR Codes (The one we just fixed)
+    # 5. QR Codes
+    {
+        "dag_id": "QR_CODES_EXTRACTION_AND_PROCESSED_CODES",
+        "schedule": "0 12 * * 2,5",
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+        
+        # 👇 CORRECTED FILENAME (Added spaces to match your actual file)
+        "jobs": [{"task_id": "QR_CODES_EXTRACTION_AND_PROCESSED_CODES", "script": "QRCODES_PROJECT/QR CODES EXTRACTION AND PROCESSED CODES.py"}], 
+        
+        "edges": [],
+        "tags": ["QR_CODES_EXTRACTION_AND_PROCESSED_CODES", "external-script"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+    # TB treatment data
+    {
+        "dag_id": "TB_TREATMENT_DATA",
+        "schedule": "0 12 * * 2,5",
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+        
+        # 👇 CORRECTED FILENAME (Added spaces to match your actual file)
+        "jobs": [{"task_id": "TB_TREATMENT_DATA", "script": "WAVE11_PROJECT/TB_treatment_processing.py"}], 
+        
+        "edges": [],
+        "tags": ["TB_TREATMENT_DATA", "external-script"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+
 
 
 
