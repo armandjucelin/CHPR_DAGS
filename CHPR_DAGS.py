@@ -1010,20 +1010,20 @@ DAG_SPECS = [
     # TB treatment data
     {
         "dag_id": "TB_TREATMENT_DATA",
-        "schedule": "0 12 * * 2,5",
+         "schedule": "0 * * * *",  # 👈 Changed: Runs at minute 0 of every hour
         "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
-        
-        # 👇 CORRECTED FILENAME (Added spaces to match your actual file)
-        "jobs": [{"task_id": "TB_TREATMENT_DATA", "script": "WAVE11_PROJECT/TB_treatment_processing.py"}], 
-        
-        "edges": [],
-        "tags": ["TB_TREATMENT_DATA", "external-script"],
-        "retries": 2,
-        "retry_delay_minutes": 5,
-        "max_active_runs": 2,
-        "max_active_tasks": 4,
+    
+    # 👇 CORRECTED FILENAME (Added spaces to match your actual file)
+         "jobs": [{"task_id": "TB_TREATMENT_DATA", "script": "TB_TREATMENT_PROJECT/TB_TREATMENT_PROGRESS_TRACKER.py"}], 
+    
+         "edges": [],
+         "tags": ["TB_TREATMENT_DATA", "external-script"],
+         "retries": 2,
+         "retry_delay_minutes": 5,
+         "max_active_runs": 2,
+         "max_active_tasks": 4,
         "pool": "data_import_pool",
-    },
+    }
 
 
 
