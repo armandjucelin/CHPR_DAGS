@@ -29,8 +29,58 @@ from airflow.sdk.bases.sensor import BaseSensorOperator
 EMAILS = ["nghan@chprhealth.org", "ngha.mbuh@gmail.com",'toukapf@chprhealth.org',"armandtoukap4@gmail.com"]
 LOCAL_TZ = pendulum.timezone("Africa/Douala")
 DEFAULT_ARTIFACTS_DIR = "/tmp/airflow_artifacts"
-DEFAULT_SCRIPTS_DIR = "/mnt/e/SCRIPTS_PATH/inspiretb"   # override with env/Variable 'script_path'
-
+#DEFAULT_SCRIPTS_DIR = "/mnt/e/SCRIPTS_PATH/inspiretb"   # override with env/Variable 'script_path'
+import socket as _socket
+ 
+_PER_USER_DEFAULTS: dict[str, str] = {
+    # hostname (lowercase)  :  absolute path to the inspiretb repo root
+    "Armand":              "/mnt/e/SCRIPTS_PATH/inspiretb",
+    "Ngha":                "/mnt/c/SCRIPTS_PATH/inspiretb",
+    # ↓ Add teammates here as they onboard
+    # "colleague-laptop":     "/mnt/c/Users/colleague/inspiretb",
+}
+ 
+def _resolve_default_scripts_dir() -> str:
+    """
+    Resolve the scripts directory at import time using this priority:
+      1. SCRIPT_PATH / SCRIPTS_PATH / SCRIPTS_DIR environment variable
+      2. dags/.env file in the same directory as this DAG file
+      3. Per-user hostname map (_PER_USER_DEFAULTS)
+      4. Hard-coded fallback (last resort)
+    """
+    # 1. Environment variable (common spellings)
+    for _env_key in ("SCRIPT_PATH", "SCRIPTS_PATH", "SCRIPTS_DIR", "script_path"):
+        _val = os.environ.get(_env_key)
+        if _val:
+            return _val
+ 
+    # 2. .env file next to this DAG file (gitignored, per-machine)
+    _env_file = Path(__file__).parent / ".env"
+    if _env_file.exists():
+        try:
+            with open(_env_file) as _f:
+                for _line in _f:
+                    _line = _line.strip()
+                    if _line.startswith("#") or "=" not in _line:
+                        continue
+                    _k, _, _v = _line.partition("=")
+                    if _k.strip().upper() in ("SCRIPT_PATH", "SCRIPTS_PATH", "SCRIPTS_DIR"):
+                        _v = _v.strip().strip('"').strip("'")
+                        if _v:
+                            return _v
+        except Exception:
+            pass
+ 
+    # 3. Per-user hostname map
+    _hostname = _socket.gethostname().lower()
+    if _hostname in _PER_USER_DEFAULTS:
+        return _PER_USER_DEFAULTS[_hostname]
+ 
+    # 4. Hard-coded fallback
+    return "/mnt/e/SCRIPTS_PATH/inspiretb"
+ 
+ 
+DEFAULT_SCRIPTS_DIR = _resolve_default_scripts_dir()
 # ================================ UTILS =====================================
 def _get_cfg_runtime(name: str, default: str | None = None) -> str:
     """
@@ -1009,22 +1059,73 @@ DAG_SPECS = [
     },
     # TB treatment data
     {
-        "dag_id": "TB_TREATMENT_DATA",
+        "dag_id": "TB_TREATMENT_DATA_PROGRESS_TRACKER",
          "schedule": "0 * * * *",  # 👈 Changed: Runs at minute 0 of every hour
         "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
     
     # 👇 CORRECTED FILENAME (Added spaces to match your actual file)
-         "jobs": [{"task_id": "TB_TREATMENT_DATA", "script": "TB_TREATMENT_PROJECT/TB_TREATMENT_PROGRESS_TRACKER.py"}], 
+         "jobs": [{"task_id": "TB_TREATMENT_DATA_PROGRESS_TRACKER", "script": "TB_TREATMENT_PROJECT/TB_TREATMENT_PROGRESS_TRACKER.py"}], 
     
          "edges": [],
-         "tags": ["TB_TREATMENT_DATA", "external-script"],
+         "tags": ["TB_TREATMENT_DATA_PROGRESS_TRACKER", "external-script"],
          "retries": 2,
          "retry_delay_minutes": 5,
          "max_active_runs": 2,
          "max_active_tasks": 4,
         "pool": "data_import_pool",
-    }
+    },
+    # TB Treatment user activity
+        {
+        "dag_id": "TB_TREATMENT_USER_ACTIVITY",
+         "schedule": "25 8-18 * * *",  # hourly at :15 from 08:15 to 18:15
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+    
+    # 👇 CORRECTED FILENAME (Added spaces to match your actual file)
+         "jobs": [{"task_id": "TB_TREATMENT_USER_ACTIVITY", "script": "TB_TREATMENT_PROJECT/TB_TREATMENT_USER_ACTIVITY.py"}], 
+    
+         "edges": [],
+         "tags": ["TB_TREATMENT_USER_ACTIVITY", "external-script"],
+         "retries": 2,
+         "retry_delay_minutes": 5,
+         "max_active_runs": 2,
+         "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
+    #NPOC PROJECT PIPELINE
+    {
+        "dag_id": "NPOC_PROJECT_PIPELINE",
+        "schedule": "15 8-18 * * *",  # hourly at :15 from 08:15 to 18:15
+        "start_date": datetime(2025, 8, 24, 6, 5, tzinfo=LOCAL_TZ),
+        "jobs": [
+            {"task_id": "NPOC_importation",  "script": "NPOC_PROJECT/NPOC_DATA_IMPORTATION_REPORTS.py"},
+            {"task_id": "NPOC_data_processor", "script": "NPOC_PROJECT/NPOC_DATA_PROCESSING.py"},
+        ],
+        "edges": [("NPOC_importation", "NPOC_data_processor")],
+        "tags": ["NPOC_information", "pipeline"],
+        "retries": 2,
+        "retry_delay_minutes": 5,
+        "max_active_runs": 2,
+        "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
 
+    #NPOC User Activity
+        {
+        "dag_id": "NPOC_USER_ACTIVITY",
+         "schedule": "40 8-18 * * *",  # hourly at :15 from 08:15 to 18:15
+        "start_date": datetime(2025, 8, 24, 6, 0, tzinfo=LOCAL_TZ),
+    
+    # 👇 CORRECTED FILENAME (Added spaces to match your actual file)
+         "jobs": [{"task_id": "NPOC_USER_ACTIVITY", "script": "NPOC_PROJECT/NPOC_USER_ACTIVITY.py"}], 
+    
+         "edges": [],
+         "tags": ["NPOC_USER_ACTIVITY", "external-script"],
+         "retries": 2,
+         "retry_delay_minutes": 5,
+         "max_active_runs": 2,
+         "max_active_tasks": 4,
+        "pool": "data_import_pool",
+    },
 
 
 
